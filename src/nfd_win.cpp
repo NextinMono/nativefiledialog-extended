@@ -174,7 +174,18 @@ nfdresult_t AddFiltersToDialog(::IFileDialog* fileOpenDialog,
     // automatic freeing of memory via COMDLG_FILTERSPEC_Guard
     return NFD_OKAY;
 }
+// Taken from
+// https://github.com/StrikerX3/nativefiledialog-extended/commit/08dbaadaa763db898ecaa3973a01b5464e02601d#diff-1c53d1b44a0bffc379ea2d5240be33b804b17333e98ce84715f7b0967873b279
+nfdresult_t SetDialogTitle(IFileDialog* dialog, const nfdnchar_t* dialogTitle) {
+    if (!dialogTitle || !*dialogTitle) return NFD_OKAY;
 
+    if (!SUCCEEDED(dialog->SetTitle(dialogTitle))) {
+        NFDi_SetError("Failed to set dialog title.");
+        return NFD_ERROR;
+    }
+
+    return NFD_OKAY;
+}
 /* call after AddFiltersToDialog */
 nfdresult_t SetDefaultExtension(::IFileDialog* fileOpenDialog,
                                 const nfdnfilteritem_t* filterList,
@@ -398,6 +409,10 @@ nfdresult_t NFD_OpenDialogN_With_Impl(nfdversion_t version,
         return NFD_ERROR;
     }
 
+     if (!SetDialogTitle(fileOpenDialog, args->title)) {
+        return NFD_ERROR;
+    }
+
     // Show the dialog.
     result = fileOpenDialog->Show(GetNativeWindowHandle(args->parentWindow));
     if (SUCCEEDED(result)) {
@@ -479,6 +494,10 @@ nfdresult_t NFD_OpenDialogMultipleN_With_Impl(nfdversion_t version,
 
     // Set a flag for multiple options and file system items only
     if (!AddOptions(fileOpenDialog, ::FOS_FORCEFILESYSTEM | ::FOS_ALLOWMULTISELECT)) {
+        return NFD_ERROR;
+    }
+
+    if (!SetDialogTitle(fileOpenDialog, args->title)) {
         return NFD_ERROR;
     }
 
@@ -962,7 +981,7 @@ nfdresult_t NFD_OpenDialogU8_With_Impl(nfdversion_t version,
     // call the native function
     nfdnchar_t* outPathN;
     const nfdopendialognargs_t argsN{
-        filterItemsNGuard.data, args->filterCount, defaultPathNGuard.data, args->parentWindow};
+        filterItemsNGuard.data, args->filterCount, defaultPathNGuard.data, args->parentWindow, args->title};
     nfdresult_t res = NFD_OpenDialogN_With_Impl(NFD_INTERFACE_VERSION, &outPathN, &argsN);
 
     if (res != NFD_OKAY) {
@@ -1010,7 +1029,7 @@ nfdresult_t NFD_OpenDialogMultipleU8_With_Impl(nfdversion_t version,
 
     // call the native function
     const nfdopendialognargs_t argsN{
-        filterItemsNGuard.data, args->filterCount, defaultPathNGuard.data, args->parentWindow};
+        filterItemsNGuard.data, args->filterCount, defaultPathNGuard.data, args->parentWindow, args->title};
     return NFD_OpenDialogMultipleN_With_Impl(NFD_INTERFACE_VERSION, outPaths, &argsN);
 }
 

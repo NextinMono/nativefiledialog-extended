@@ -122,6 +122,7 @@ typedef struct {
     nfdfiltersize_t filterCount;
     const nfdu8char_t* defaultPath;
     nfdwindowhandle_t parentWindow;
+    const nfdnchar_t* title;
 } nfdopendialogu8args_t;
 
 #ifdef _WIN32
@@ -130,6 +131,7 @@ typedef struct {
     nfdfiltersize_t filterCount;
     const nfdnchar_t* defaultPath;
     nfdwindowhandle_t parentWindow;
+    const nfdnchar_t* title;
 } nfdopendialognargs_t;
 #else
 typedef nfdopendialogu8args_t nfdopendialognargs_t;
